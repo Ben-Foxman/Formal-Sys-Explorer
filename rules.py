@@ -54,7 +54,7 @@ class RuleManager:
         self.alphabet = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRTSUVWXYZ0123456789-")
 
     def __repr__(self):
-        ret = "--Defined Rules--\n"
+        ret = ""
         for rule in self.rules:
             ret += "Name: " + rule[0] + "\n#args: " + str(len(rule[1])) + "\nRule: " + rule[2] + "\n"
         return ret

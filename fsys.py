@@ -6,10 +6,12 @@ from rules import RuleManager
 class FSys:
     def __init__(self):
         self.alphabet, self.axioms, self.rules, self.depth = self.get_setup()
-        print(self.alphabet, self.axioms, self.depth)
-        print(self.rules)
+        print(self)
 
-
+    def __repr__(self):
+        return colored("--System Description--\n", "cyan", attrs=['bold']) + "Alphabet: {}\nAxioms: {}\nInference Rules: \n{}"\
+            .format("".join(self.alphabet), ",".join(self.axioms), self.rules) +\
+               colored("--End of Description--", "cyan", attrs=['bold'])
     """
     Setup: 
     alphabet -> s.x where x is string containing characters allowed. alphabet must be the first argument
