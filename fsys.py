@@ -1,4 +1,5 @@
 import sys
+import re
 from termcolor import colored
 from rules import RuleManager
 
@@ -7,12 +8,14 @@ class FSys:
     def __init__(self):
         self.alphabet, self.axioms, self.rules = self.get_setup()
         self.manage_interface()
+        self.max_depth = 10
+        self.max_amt = 10 ** 12
 
     def __repr__(self):
-        return colored("--System Description--", "cyan", attrs=['bold']) + colored("\nAlphabet:", attrs=['bold'])\
+        return colored("--Formal System--", "cyan", attrs=['bold']) + colored("\nAlphabet:", attrs=['bold'])\
                + "".join(self.alphabet) + colored("\nAxioms:", attrs=['bold']) + ",".join(self.axioms) +\
                colored("\nInference Rules:\n", attrs=['bold']) + repr(self.rules) + \
-               colored("--End of Description--", "cyan", attrs=['bold'])
+               colored("--End of Formal System--", "cyan", attrs=['bold'])
     @staticmethod
     def error_msg(msg):
         print(colored("FSys:", "red", attrs=['bold']), colored(msg, "white", attrs=['bold']))
@@ -49,6 +52,7 @@ class FSys:
                 r.add_rule(info)
         if len(a) == 0:
             a.append("".join(s))
+
         # make sure axioms fit alphabet
         for ax in a:
             for char in ax:
@@ -69,6 +73,18 @@ class FSys:
                 exit(0)
             elif cmd == "print":
                 print(self)
+            elif cmd[:9] == "maxdepth ":
+                if not re.match("\d+", cmd[9:]):
+                    self.error_msg("maxdepth: argument must be an integer.")
+                else:
+                    self.max_depth = min(int(cmd[9:]), 999)
+                    print("maxdepth updated: maxdepth={}".format(self.max_depth))
+            elif cmd[:7] == "maxamt ":
+                if not re.match("\d+", cmd[7:]):
+                    self.error_msg("maxamt: argument must be an integer.")
+                else:
+                    self.max_amt = min(int(cmd[7:]), (10 ** 18) - 1)
+                    print("maxamt updated: maxamt={}".format(self.max_amt))
             else:
                 self.error_msg("Invalid command: {}".format(cmd))
 

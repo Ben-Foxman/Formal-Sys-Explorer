@@ -9,5 +9,5 @@ target (takes a string, tries to find it in as few iterations as possible)
 exhaust (find all possible strings)
 depth (change depth)
 
-these can have flags as well. 
+these can have flags as well.
 

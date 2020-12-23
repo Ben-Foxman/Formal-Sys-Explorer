@@ -1,7 +1,27 @@
 Below is a list of all current commands which can be run on a properly initialized formal system.
 --Printing--
-print   Print a summary of the formal system.
+print
+Print a summary of the formal system.
+
+--Analysis--
+maxamt n
+During analyses, maxamt specifies the largest number of well-formed string on the search queue at any time,
+where 0 <= n < 10^18. Default: 10^12
+
+maxdepth n
+Set the maximum search depth during analyses to n, where 0 <= n < 1000. Default: 10
+
+target s [-l]
+Test if s is well-formed, within the bounds of maxamt and maxdepth, printing the result. If -l
+is specified, long-form printing is used.
+
+exhaust x [outfile | -l]
+Write to outfile, or stdout if outfile not specified, a list of all well-formed strings within the constraints
+of maxamt and depth=x <= maxdepth. If -l is specified, long-form printing is used.
 
 --Other--
-help    Print this file to stdout.
-exit    Exit the program (with code 0).
+help
+Print this file to stdout.
+
+exit
+Exit the program (with code 0).

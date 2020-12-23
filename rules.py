@@ -56,7 +56,8 @@ class RuleManager:
     def __repr__(self):
         ret = ""
         for rule in self.rules:
-            ret += colored("Name: ", "blue", attrs=['bold']) + rule[0] + "\n#args: " + str(len(rule[1])) + "\nRule: "\
+            ret += colored("Name: ", "blue", attrs=['bold']) + rule[0] + "\n#args: " + str(len(rule[1])) + \
+                   "\nArgument Regex Filters (.*=nofilter): " + "  ".join(rule[1]) + "\nRule: "\
                    + rule[2] + "\n"
         return ret
 
@@ -199,10 +200,4 @@ class RuleManager:
         print(colored("RuleManager:", "red", attrs=['bold']), colored(msg, "white", attrs=['bold']))
 
 
-# print(run("(adhgfghf){3}", ['1','2','3','4']))
 
-# r = RuleManager()  # new rule manager
-# a = "r1.2->((abcb){a>b}){b>a}"  # create a rule (first letter of both arguments concatenated twice)
-# r.add_rule(a)  # add it to the list of rules
-# ans = r.run_rule("r1", ["ab", "cd"], True)  # run it on the input 'x', 'y'
-# print(ans)
