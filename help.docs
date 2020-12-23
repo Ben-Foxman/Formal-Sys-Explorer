@@ -1,0 +1,7 @@
+Below is a list of all current commands which can be run on a properly initialized formal system.
+--Printing--
+print   Print a summary of the formal system.
+
+--Other--
+help    Print this file to stdout.
+exit    Exit the program (with code 0).
