@@ -1,0 +1,10 @@
+rules.py
+
+- add replace capture group (){a|b}
+- add replace all capture group (){a}
+- these should nest (a itself is an expansion)
+
+fsys.py
+
+- Make sure alphabets have at least one character
+
