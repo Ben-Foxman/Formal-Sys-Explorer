@@ -56,7 +56,8 @@ class RuleManager:
     def __repr__(self):
         ret = ""
         for rule in self.rules:
-            ret += "Name: " + rule[0] + "\n#args: " + str(len(rule[1])) + "\nRule: " + rule[2] + "\n"
+            ret += colored("Name: ", "blue", attrs=['bold']) + rule[0] + "\n#args: " + str(len(rule[1])) + "\nRule: "\
+                   + rule[2] + "\n"
         return ret
 
     def set_alphabet(self, alphabet):

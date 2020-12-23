@@ -1,10 +1,13 @@
 rules.py
 
-- add replace capture group (){a|b}
-- add replace all capture group (){a}
-- these should nest (a itself is an expansion)
 
 fsys.py
 
-- Make sure alphabets have at least one character
+New commands to add:
+
+target (takes a string, tries to find it in as few iterations as possible)
+exhaust (find all possible strings)
+depth (change depth)
+
+these can have flags as well. 
 

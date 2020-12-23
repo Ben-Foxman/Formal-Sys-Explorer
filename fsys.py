@@ -9,10 +9,10 @@ class FSys:
         self.manage_interface()
 
     def __repr__(self):
-        return colored("--System Description--\n", "cyan", attrs=['bold']) + "Alphabet: {}\nAxioms: {}\nInference Rules: \n{}"\
-            .format("".join(self.alphabet), ",".join(self.axioms), self.rules) +\
+        return colored("--System Description--", "cyan", attrs=['bold']) + colored("\nAlphabet:", attrs=['bold'])\
+               + "".join(self.alphabet) + colored("\nAxioms:", attrs=['bold']) + ",".join(self.axioms) +\
+               colored("\nInference Rules:\n", attrs=['bold']) + repr(self.rules) + \
                colored("--End of Description--", "cyan", attrs=['bold'])
-
     @staticmethod
     def error_msg(msg):
         print(colored("FSys:", "red", attrs=['bold']), colored(msg, "white", attrs=['bold']))
