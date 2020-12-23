@@ -1,6 +1,6 @@
 """
 A grammar rule = a function which maps input of a certain form to corresponding outputs
-Rules are given by NAME[regex-list][rule]
+Rules are given by NAME[regex-list]=[rule]
 
 NAME
 A string indicating the name of the rule.
@@ -23,13 +23,15 @@ Adds that character to the output string.
 2. ${n}, n >= 0
 Replaces $n by the nth argument to the rule, or empty string if n >= #args
 3. ${.}
-Replaces by all arguments to the rule.
+Replaces by all arguments to the rule, in ascending order
 
 ------Captures------
 1. (){n}
 Replace by n copies.
 2. (){a:b}
 Replace by the substring from a(inclusive) to b(exclusive), using python substring conventions.
+3. (){a>b}
+Replace all occurrences of char a with char b. a,b must both be in the alphabet
 
 ------Escapes------
 1. \
@@ -51,22 +53,28 @@ class RuleManager:
         self.rules = []
         self.alphabet = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRTSUVWXYZ0123456789-")
 
+    def __repr__(self):
+        ret = "--Defined Rules--\n"
+        for rule in self.rules:
+            ret += "Name: " + rule[0] + "\n#args: " + str(len(rule[1])) + "\nRule: " + rule[2] + "\n"
+        return ret
+
     def set_alphabet(self, alphabet):
         self.alphabet = alphabet
 
     def add_rule(self, rule):
-        form = re.match("[A-Za-z_]\w+\.\d+->.*", rule)
+        form = re.match("[A-Za-z_]\w+\.\d+=.*", rule)
         if not form:
-            self.error_msg("RuleManager: NAME.[num-arguments]->[rule]")
+            self.error_msg("NAME.[num-arguments]=[rule]")
             exit(1)
         x = rule.find('.')
-        y = rule.find("->")
+        y = rule.find("=")
         regexes = ['.*'] * int(rule[x + 1: y])
         name = rule[:x]
 
         # check if a rule already exists
         if name in [x[0] for x in self.rules]:
-            self.error_msg("RuleManager: Rule \"{}\" already exists.".format(name))
+            self.error_msg("Rule \"{}\" already exists.".format(name))
         else:
             for i in range(len(regexes)):
                 done = False
@@ -78,14 +86,14 @@ class RuleManager:
                         try:
                             re.compile(new_regex)
                         except re.error:
-                            self.error_msg("RuleManager: Invalid Regex.")
+                            self.error_msg("Invalid Regex.")
                         else:
                             regexes[i] = new_regex
                             done = True
                     elif spec in ['n', 'N', 'no', 'No', 'NO']:
                         done = True
 
-            self.rules.append([name, regexes, rule[y + 2:]])
+            self.rules.append([name, regexes, rule[y + 1:]])
 
             # run once to trigger syntax errors in the rule - don't have to check regexes (regex fails != syntax errors)
             self.run_rule(name, [self.alphabet[0]] * len(regexes), False)
@@ -95,21 +103,21 @@ class RuleManager:
         # check that rule has been defined
         rule_list = [x[0] for x in self.rules]
         if rule not in rule_list:
-            self.error_msg("RuleManager: Running an undefined rule: {}".format(rule))
+            self.error_msg("Running an undefined rule: {}".format(rule))
             exit(1)
         index = rule_list.index(rule)
         regexes = self.rules[index][1]
         toRun = self.rules[index][2]
 
         if len(regexes) != len(args):
-            self.error_msg("RuleManager: conflicting argument numbers when running rule \"{}\": {} required, {} given."
+            self.error_msg("Conflicting argument numbers when running rule \"{}\": {} required, {} given."
                   .format(rule, len(regexes), len(args)))
             exit(1)
         if regex_check:
             for pattern, string in zip(regexes, args):
                 check = re.match(pattern, string)
                 if not check or check.end() != len(string):
-                    self.error_msg("RuleManager: Rule \"{}\": Argument \"{}\" does not satisfy regex \"{}\""
+                    self.error_msg("Rule \"{}\": Argument \"{}\" does not satisfy regex \"{}\""
                           .format(rule, string, pattern))
                     exit(1)
 
@@ -139,20 +147,27 @@ class RuleManager:
             capturing = True
             while capturing:
                 if not rule:
-                    self.error_msg("RuleManager: Capture group not closed.")
+                    self.error_msg("Capture group not closed.")
                     exit(1)
                 elif rule[0] == ')':
                     rule = rule[1:]
-                    operator = re.match("\{([0-9]+|[0-9]+:[0-9]+)\}", rule)
+                    operator = re.match("\{([0-9]+|[0-9]+:[0-9]+|.>.)\}", rule)
                     if not operator:
-                        self.error_msg("RuleManager: Capture group not equipped with valid operator.")
+                        self.error_msg("Capture group not equipped with valid operator.")
                         exit(1)
                     rep = operator.group(0)
+                    # substring replace
                     if ':' in rep:
                         divide = rep.index(":")
                         start = int(rep[1:divide])
                         end = int(rep[divide + 1: len(rep) - 1])
                         ans += inside[start:end]
+                    # char capture replace
+                    elif '>' in rep:
+                        from_char, to_char = rep[1], rep[3]
+                        inside = inside.replace(from_char, to_char)
+                        ans += inside
+                    # repetition capture
                     else:
                         ans += inside * int(rep[1: len(rep) - 1])
                     rule = rule[len(rep):]
@@ -164,7 +179,7 @@ class RuleManager:
         elif rule[0] == '\\':
             if len(rule) > 1:
                 if rule[1] not in self.alphabet:
-                    self.error_msg("RuleManager: rule cannot add characters to string not in the alphabet: \'{}\'".format(rule[0]))
+                    self.error_msg("Rule cannot add characters to string not in the alphabet: \'{}\'".format(rule[0]))
                     exit(1)
                 ans += rule[1]
             rule = rule[2:]
@@ -174,19 +189,19 @@ class RuleManager:
                 ans += rule[0]
                 rule = rule[1:]
             else:
-                self.error_msg("RuleManager: rule cannot add characters to string not in the alphabet: \'{}\'".format(rule[0]))
+                self.error_msg("Rule cannot add characters to string not in the alphabet: \'{}\'".format(rule[0]))
                 exit(1)
         return rule, ans
 
     @staticmethod
     def error_msg(msg):
-        print(colored("Error:", "red", attrs=['bold']), colored(msg, "white"))
+        print(colored("RuleManager:", "red", attrs=['bold']), colored(msg, "white", attrs=['bold']))
 
 
 # print(run("(adhgfghf){3}", ['1','2','3','4']))
 
-r = RuleManager()  # new rule manager
-a = "r1.2->((${0}){0:1}(${1}){0:1}){2}(bb){0}("  # create a rule (first letter of both arguments concatenated twice)
-r.add_rule(a)  # add it to the list of rules
-ans = r.run_rule("r1", ["ab", "cd"], True)  # run it on the input 'x', 'y'
-print(ans)
+# r = RuleManager()  # new rule manager
+# a = "r1.2->((abcb){a>b}){b>a}"  # create a rule (first letter of both arguments concatenated twice)
+# r.add_rule(a)  # add it to the list of rules
+# ans = r.run_rule("r1", ["ab", "cd"], True)  # run it on the input 'x', 'y'
+# print(ans)
