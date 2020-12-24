@@ -13,8 +13,8 @@ class FSys:
 
     def __repr__(self):
         return colored("--Formal System--", "cyan", attrs=['bold']) + colored("\nAlphabet:", attrs=['bold'])\
-               + "".join(self.alphabet) + colored("\nAxioms:", attrs=['bold']) + ",".join(self.axioms) +\
-               colored("\nInference Rules:\n", attrs=['bold']) + repr(self.rules) + \
+               + "".join(self.alphabet) + colored("\nAxiom(s):", attrs=['bold']) + ",".join(self.axioms) +\
+               colored("\nInference Rule(s):\n", attrs=['bold']) + repr(self.rules) + \
                colored("--End of Formal System--", "cyan", attrs=['bold'])
     @staticmethod
     def error_msg(msg):
@@ -31,28 +31,44 @@ class FSys:
     axiom = the alphabet in sorted lexicographic order
     rule = the identity rule
     depth = 5
+    
+    IMPORTANT: behavior is undefined when the alphabet contains any of the following characters: :,;,&,|,<,>,(,),^,$
+    As a result, they are banned. 
     """
     def get_setup(self):
         s, a, r = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRTSUVWXYZ0123456789-"), [], RuleManager()
-        for arg in sys.argv[1:]:
-            if len(arg) < 2 or arg[0] not in ['a', 'r', 's'] or arg[1] != '.' or \
-                    (arg[0] == 's' and sys.argv.index(arg) != 1):
-                print("Usage: [s.x][a.x | r.x]")
-                exit(1)
+        banned_chars = ":;$|<>()^$"
+        count = 0
+        with open(sys.argv[1]) as file:
+            for arg in file:
+                count += 1
+                if len(arg) < 2 or arg[0] not in ['a', 'r', 's'] or arg[1] != '.' or \
+                        (arg[0] == 's' and count != 1):
+                    self.error_msg("Usage: [s.x][a.x | r.x]")
+                    exit(1)
 
-            info = arg[2:]
-            if arg[0] == 's':
-                if len(info) == 0:
-                    self.error_msg("Alphabets must have at least one character.")
-                s = sorted(list(set(info)))
-                r.set_alphabet(s)
-            elif arg[0] == 'a':
-                a.append(info)
-            else:
-                r.add_rule(info)
+                info = arg[2:]
+                if arg[0] == 's':
+                    for char in info:
+                        if char in banned_chars:
+                            self.error_msg("{}: contains banned character {}. Stop.".format(info, char))
+                            exit(1)
+                    if len(info) == 0:
+                        self.error_msg("Alphabets must have at least one character.")
+                    s = sorted(list(set(info)))
+                    r.set_alphabet(s)
+                elif arg[0] == 'a':
+                    a.append(info)
+                # adding a rule
+                else:
+                    r.add_rule(info)
+
+        # default axiom is string of entire alphabet
         if len(a) == 0:
             a.append("".join(s))
 
+        if len(r.rules) == 0:
+            self.error_msg("No inference rules were given.")
         # make sure axioms fit alphabet
         for ax in a:
             for char in ax:
@@ -65,6 +81,7 @@ class FSys:
 
     def manage_interface(self):
         while True:
+            print(self.rules.run_rule("B", ['a', 'b'], False))
             cmd = input(colored("Enter a command. Type \"help\" for a list of commands.\n", attrs=['bold']))
             if cmd == "help":
                 with open("help.docs", "r") as file:
@@ -88,11 +105,13 @@ class FSys:
             else:
                 self.error_msg("Invalid command: {}".format(cmd))
 
-
-
+    # empty strings array -> exhaust requested
+    def search_strings(self, strings, longform, outfile):
+        pass
 
 
 f = FSys()
+print(f.rules.run_rule("A",["BFBFB"],True))
 
 
 

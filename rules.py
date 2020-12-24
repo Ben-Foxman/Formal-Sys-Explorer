@@ -30,8 +30,9 @@ Replaces by all arguments to the rule, in ascending order
 Replace by n copies.
 2. (){a:b}
 Replace by the substring from a(inclusive) to b(exclusive), using python substring conventions.
-3. (){a>b}
-Replace all occurrences of char a with char b. a,b must both be in the alphabet
+3. (){a^b}
+Replace all occurrences of string a with string b. a,b must both have all chars be in the alphabet. Note: these
+strings are not expanded, so ${0} causes an error, since "$" is not allowed.
 
 ------Escapes------
 1. \
@@ -65,7 +66,7 @@ class RuleManager:
         self.alphabet = alphabet
 
     def add_rule(self, rule):
-        form = re.match("[A-Za-z_]\w+\.\d+=.*", rule)
+        form = re.match("[A-Za-z_]\w*\.\d+=.*", rule)
         if not form:
             self.error_msg("NAME.[num-arguments]=[rule]")
             exit(1)
@@ -153,7 +154,7 @@ class RuleManager:
                     exit(1)
                 elif rule[0] == ')':
                     rule = rule[1:]
-                    operator = re.match("\{([0-9]+|[0-9]+:[0-9]+|.>.)\}", rule)
+                    operator = re.match("\{([0-9]+|[0-9]+:[0-9]+|[^{}]*\^[^{}]*)\}", rule)
                     if not operator:
                         self.error_msg("Capture group not equipped with valid operator.")
                         exit(1)
@@ -164,10 +165,15 @@ class RuleManager:
                         start = int(rep[1:divide])
                         end = int(rep[divide + 1: len(rep) - 1])
                         ans += inside[start:end]
-                    # char capture replace
-                    elif '>' in rep:
-                        from_char, to_char = rep[1], rep[3]
-                        inside = inside.replace(from_char, to_char)
+                    # string capture replace
+                    elif '^' in rep:
+                        divide = rep.index("^")
+                        from_string, to_string = rep[1:divide], rep[divide + 1:-1]
+                        for char in from_string + to_string:
+                            if char not in self.alphabet:
+                                self.error_msg("Rule contains a character not in the alphabet: {}".format(char))
+                                exit(0)
+                        inside = inside.replace(from_string, to_string)
                         ans += inside
                     # repetition capture
                     else:
