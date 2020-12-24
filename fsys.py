@@ -81,7 +81,6 @@ class FSys:
 
     def manage_interface(self):
         while True:
-            print(self.rules.run_rule("B", ['a', 'b'], False))
             cmd = input(colored("Enter a command. Type \"help\" for a list of commands.\n", attrs=['bold']))
             if cmd == "help":
                 with open("help.docs", "r") as file:
@@ -94,7 +93,7 @@ class FSys:
                 if not re.match("\d+", cmd[9:]):
                     self.error_msg("maxdepth: argument must be an integer.")
                 else:
-                    self.max_depth = min(int(cmd[9:]), 999)
+                    self.max_depth = min(int(cmd[9:]), (10 ** 3) - 1)
                     print("maxdepth updated: maxdepth={}".format(self.max_depth))
             elif cmd[:7] == "maxamt ":
                 if not re.match("\d+", cmd[7:]):
@@ -106,12 +105,12 @@ class FSys:
                 self.error_msg("Invalid command: {}".format(cmd))
 
     # empty strings array -> exhaust requested
-    def search_strings(self, strings, longform, outfile):
+    def search_strings(self, strings, longform):
         pass
 
 
 f = FSys()
-print(f.rules.run_rule("A",["BFBFB"],True))
+
 
 
 

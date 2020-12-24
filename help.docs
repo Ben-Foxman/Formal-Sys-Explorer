@@ -15,8 +15,8 @@ target [-l] [strings]
 Test each string in strings for well-formedness, within the bounds of maxamt and maxdepth, printing the result. If -l
 is specified, long-form printing is used.
 
-exhaust [-l] [outfile]
-Write to outfile, or stdout if outfile not specified, a list of all well-formed strings within the constraints
+exhaust [-l]
+Write to stdout a list of all well-formed strings within the constraints
 of maxamt and maxdepth. If -l is specified, long-form printing is used.
 
 --Other--
