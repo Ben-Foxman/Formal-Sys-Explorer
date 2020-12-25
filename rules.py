@@ -20,9 +20,9 @@ the following:
 ------Replacements------
 1. Any character not part of another rule
 Adds that character to the output string.
-2. ${n}, n >= 0
+2. $n, n >= 0
 Replaces $n by the nth argument to the rule, or empty string if n >= #args
-3. ${.}
+3. $.
 Replaces by all arguments to the rule, in ascending order
 
 ------Captures------
@@ -33,16 +33,15 @@ Replace by the substring from a(inclusive) to b(exclusive), using python substri
 3. (){a^b}
 Replace all occurrences of string a with string b. a,b must both have all chars be in the alphabet. Note: these
 strings are not expanded, so ${0} causes an error, since "$" is not allowed.
+TODO: {a<b} If capture group is identical to a, replace with b.
+TODO: {a>b}  If capture group is not identical to a, replace with b.
 
 ------Escapes------
 1. \
 Escapes the next character. The escape is removed.
-------Rules-in-Rules------
-1. [NAME]
-Replace by rule NAME, with [regex-list] used as inputs. If NAME requires less inputs than the parent NAME,
-only the first n arguments are used. If more are required, or NAME is not defined, the empty string is returned.
 
-Note: The [rule] syntax is relatively minimal to try to stay true to the philosophy of formal systems.
+
+Note: The [rule] syntax is relatively minimal to try to stay (somewhat?) true to the philosophy of formal systems.
 
 """
 import re
@@ -133,13 +132,13 @@ class RuleManager:
 
     def eval_rule(self, rule, args):
         ans = ""
-        replacement = re.match("\$\{(\d+|.)\}", rule)
+        replacement = re.match("\$(\d+|.)", rule)
         # replacement group
         if replacement:
             if rule[2] == '.':
                 ans += "".join(args)
             else:
-                arg = int(rule[2:replacement.end() - 1])
+                arg = int(rule[1:replacement.end()])
                 if arg < len(args):
                     ans += args[arg]
             rule = rule[replacement.end():]

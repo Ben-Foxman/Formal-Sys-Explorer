@@ -137,9 +137,19 @@ class FSys:
     # empty strings array -> exhaust requested
     def search_strings(self, strings, longform):
         targets = []
+        # check previously calculated theorems for targets
+        for thm in self.theorems:
+            # theorem already calculated
+            if thm[0] in strings:
+                targets.append(thm)
+                strings.remove(thm[0])
+                if not strings:
+                    self.print_info(targets, targets, longform)
+                    return
+
         for i in range(self.searched + 1, self.max_depth + 1):
-            new_thms = []
             old_thms = [x[0] for x in self.theorems]
+            new_thms = []
             # for each rule specified
             for rule in self.rule_list.rules:
                 # for each group of theorem input
@@ -155,16 +165,23 @@ class FSys:
                     # run the input on the rule
                     if good_in:
                         output = self.rule_list.run_rule(rule[0], inputs, False)
-                        if len(output) <= self.max_len and output not in old_thms:
-                            new_thms.append([output, i])
+                        if len(output) <= self.max_len and output not in old_thms and output not in new_thms:
+                            new_thms.append(output)
+                            # target?
+                            if output in strings:
+                                targets.append([output, i])
+                                strings.remove(output)
+                                if not strings:
+                                    self.print_info(targets, targets, longform)
+                                    return
+            # add depth to new_thms
+            new_thms = [[x, i] for x in new_thms]
             self.theorems.extend(new_thms)
+            # update searched depth
+            self.searched = i
+        self.print_info(strings, targets, longform)
 
-        # get the targets
-        for thm in self.theorems:
-            if thm[0] in strings:
-                targets.append(thm)
-        # update searched depth
-        self.searched = self.max_depth
+    def print_info(self, strings, targets, longform):
         # print everything out
         colors = ['yellow', 'blue', 'magenta']
         if longform:
