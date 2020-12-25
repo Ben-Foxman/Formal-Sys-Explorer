@@ -4,16 +4,16 @@ print
 Print a summary of the formal system.
 
 --Analysis--
-maxamt n
-During analyses, maxamt specifies the largest number of well-formed string on the search queue at any time,
-where 0 <= n < 10^18. Default: 10^12
+maxlen n
+During analyses, maxlen specifies the maximum length of any string to find,
+where 0 <= n < 10000. Default: 100
 
 maxdepth n
 Set the maximum search depth during analyses to n, where 0 <= n < 1000. Default: 10
 
 target [-l] [strings]
 Test each string in strings for well-formedness, within the bounds of maxamt and maxdepth, printing the result. If -l
-is specified, long-form printing is used.
+is specified, long-form printing is used. If strings is empty, target is identical to exhaust.
 
 exhaust [-l]
 Write to stdout a list of all well-formed strings within the constraints

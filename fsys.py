@@ -1,20 +1,25 @@
 import sys
 import re
+import itertools
 from termcolor import colored
 from rules import RuleManager
 
 
 class FSys:
     def __init__(self):
-        self.alphabet, self.axioms, self.rules = self.get_setup()
-        self.manage_interface()
+        self.alphabet, self.axioms, self.rule_list = self.get_setup()
         self.max_depth = 10
-        self.max_amt = 10 ** 12
+        self.max_len = 100
+        # theorems: string, iteration found, path
+        self.theorems = [[ax, 0] for ax in self.axioms]
+        # searched = #iterations already calculated
+        self.searched = 0
+        self.manage_interface()
 
     def __repr__(self):
         return colored("--Formal System--", "cyan", attrs=['bold']) + colored("\nAlphabet:", attrs=['bold'])\
                + "".join(self.alphabet) + colored("\nAxiom(s):", attrs=['bold']) + ",".join(self.axioms) +\
-               colored("\nInference Rule(s):\n", attrs=['bold']) + repr(self.rules) + \
+               colored("\nInference Rule(s):\n", attrs=['bold']) + repr(self.rule_list) + \
                colored("--End of Formal System--", "cyan", attrs=['bold'])
     @staticmethod
     def error_msg(msg):
@@ -30,7 +35,6 @@ class FSys:
     alphabet = alphanumeric + underscore
     axiom = the alphabet in sorted lexicographic order
     rule = the identity rule
-    depth = 5
     
     IMPORTANT: behavior is undefined when the alphabet contains any of the following characters: :,;,&,|,<,>,(,),^,$
     As a result, they are banned. 
@@ -41,6 +45,7 @@ class FSys:
         count = 0
         with open(sys.argv[1]) as file:
             for arg in file:
+                arg = arg.strip() # remove trailing newlines
                 count += 1
                 if len(arg) < 2 or arg[0] not in ['a', 'r', 's'] or arg[1] != '.' or \
                         (arg[0] == 's' and count != 1):
@@ -58,7 +63,15 @@ class FSys:
                     s = sorted(list(set(info)))
                     r.set_alphabet(s)
                 elif arg[0] == 'a':
-                    a.append(info)
+                    good = True
+                    for char in info:
+                        if char not in s:
+                            self.error_msg(
+                                "Axiom '{}' consists of characters not in alphabet. It will be discarded.".format(info))
+                            good = False
+                            break
+                    if good:
+                        a.append(info)
                 # adding a rule
                 else:
                     r.add_rule(info)
@@ -66,17 +79,13 @@ class FSys:
         # default axiom is string of entire alphabet
         if len(a) == 0:
             a.append("".join(s))
+        else:
+            # remove duplicates
+            a = list(set(a))
 
         if len(r.rules) == 0:
             self.error_msg("No inference rules were given.")
         # make sure axioms fit alphabet
-        for ax in a:
-            for char in ax:
-                if char not in s:
-                    self.error_msg("Axiom '{}' consists of characters not in alphabet.".format(ax))
-                    a.remove(ax)
-                    break
-
         return s, a, r
 
     def manage_interface(self):
@@ -95,18 +104,64 @@ class FSys:
                 else:
                     self.max_depth = min(int(cmd[9:]), (10 ** 3) - 1)
                     print("maxdepth updated: maxdepth={}".format(self.max_depth))
-            elif cmd[:7] == "maxamt ":
+            elif cmd[:7] == "maxlen ":
                 if not re.match("\d+", cmd[7:]):
-                    self.error_msg("maxamt: argument must be an integer.")
+                    self.error_msg("maxlen: argument must be an integer.")
                 else:
-                    self.max_amt = min(int(cmd[7:]), (10 ** 18) - 1)
-                    print("maxamt updated: maxamt={}".format(self.max_amt))
+                    self.max_amt = min(int(cmd[7:]), (10 ** 4) - 1)
+                    print("maxlen updated: maxlen={}".format(self.max_amt))
+            elif cmd[:7] == "target " or cmd[:8] == "exhaust ":
+                args = cmd.split()
+                if len(args) >= 2 and args[1] == "-l":
+                    self.search_strings(args[2:], longform=True)
+                else:
+                    self.search_strings(args[2:], longform=False)
+
             else:
                 self.error_msg("Invalid command: {}".format(cmd))
 
     # empty strings array -> exhaust requested
     def search_strings(self, strings, longform):
-        pass
+        targets = []
+        for i in range(self.searched + 1, self.max_depth + 1):
+            new_thms = []
+            old_thms = [x[0] for x in self.theorems]
+            # for each rule specified
+            for rule in self.rule_list.rules:
+                # for each group of theorem input
+                for inputs in itertools.product(old_thms, repeat=len(rule[1])):
+                    # for each theorem
+                    for j in range(len(inputs)):
+                        # if regex fails
+                        if not re.match(rule[1][j], inputs[j]):
+                            break
+                    # run the input on the rule
+                    output = self.rule_list.run_rule(rule[0], inputs, False)
+                    if output in strings:
+                        targets.append(output)
+                    if len(output) <= self.max_len and output not in old_thms:
+                        new_thms.append([output, i])
+            self.theorems.extend(new_thms)
+
+        self.searched = self.max_depth
+
+        if strings:
+            print(targets)
+        else:
+            print(self.theorems)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 f = FSys()
