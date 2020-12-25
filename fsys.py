@@ -1,6 +1,7 @@
 import sys
 import re
 import itertools
+import time
 from termcolor import colored
 from rules import RuleManager
 
@@ -108,14 +109,20 @@ class FSys:
                 if not re.match("\d+", cmd[7:]):
                     self.error_msg("maxlen: argument must be an integer.")
                 else:
-                    self.max_amt = min(int(cmd[7:]), (10 ** 4) - 1)
-                    print("maxlen updated: maxlen={}".format(self.max_amt))
-            elif cmd[:7] == "target " or cmd[:8] == "exhaust ":
+                    self.max_len = min(int(cmd[7:]), (10 ** 4) - 1)
+                    print("maxlen updated: maxlen={}".format(self.max_len))
+            elif cmd[:6] == "target" or cmd[:7] == "exhaust":
                 args = cmd.split()
                 if len(args) >= 2 and args[1] == "-l":
-                    self.search_strings(args[2:], longform=True)
+                    if cmd[:7] == "target ":
+                        self.search_strings(args[2:], longform=True)
+                    else:
+                        self.search_strings([], longform=True)
                 else:
-                    self.search_strings(args[2:], longform=False)
+                    if cmd[:6] == "target":
+                        self.search_strings(args[1:], longform=False)
+                    else:
+                        self.search_strings([], longform=False)
 
             else:
                 self.error_msg("Invalid command: {}".format(cmd))
@@ -130,25 +137,44 @@ class FSys:
             for rule in self.rule_list.rules:
                 # for each group of theorem input
                 for inputs in itertools.product(old_thms, repeat=len(rule[1])):
+                    good_in = True
                     # for each theorem
                     for j in range(len(inputs)):
                         # if regex fails
-                        if not re.match(rule[1][j], inputs[j]):
+                        match = re.match(rule[1][j], inputs[j])
+                        if not match or match.end() != len(inputs[j]):
+                            good_in = False
                             break
                     # run the input on the rule
-                    output = self.rule_list.run_rule(rule[0], inputs, False)
-                    if output in strings:
-                        targets.append(output)
-                    if len(output) <= self.max_len and output not in old_thms:
-                        new_thms.append([output, i])
+                    if good_in:
+                        output = self.rule_list.run_rule(rule[0], inputs, False)
+                        if len(output) <= self.max_len and output not in old_thms:
+                            new_thms.append([output, i])
             self.theorems.extend(new_thms)
 
+        # get the targets
+        for thm in self.theorems:
+            if thm[0] in strings:
+                targets.append(thm)
+        # update searched depth
         self.searched = self.max_depth
-
+        # print everything out
+        colors = ['yellow', 'blue', 'magenta']
+        if longform:
+            print("--Overall Search Information--")
+            print("Maximum Search Depth: {}".format(self.max_depth))
+            print("Maximum string length: {}".format(self.max_len))
         if strings:
-            print(targets)
+            if not targets:
+                print(colored("No targets found.", attrs=['bold']))
+            else:
+                for t in targets:
+                    if t[1] <= self.max_depth and len(t[0]) <= self.max_len:
+                        print(colored("{} found at depth={}".format(t[0], t[1]), colors[t[1] % 3], attrs=['bold']))
         else:
-            print(self.theorems)
+            for t in self.theorems:
+                if t[1] <= self.max_depth and len(t[0]) <= self.max_len:
+                    print(colored("depth={}: {}".format(t[1], t[0]), colors[t[1] % 3], attrs=['bold']))
 
 
 
