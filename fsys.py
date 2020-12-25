@@ -46,7 +46,7 @@ class FSys:
         count = 0
         with open(sys.argv[1]) as file:
             for arg in file:
-                arg = arg.strip() # remove trailing newlines
+                arg = arg.strip()  # remove trailing newlines
                 count += 1
                 if len(arg) < 2 or arg[0] not in ['a', 'r', 's'] or arg[1] != '.' or \
                         (arg[0] == 's' and count != 1):

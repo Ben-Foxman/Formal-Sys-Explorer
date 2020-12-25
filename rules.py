@@ -57,7 +57,7 @@ class RuleManager:
         ret = ""
         for rule in self.rules:
             ret += colored("Name: ", "blue", attrs=['bold']) + rule[0] + "\n#args: " + str(len(rule[1])) + \
-                   "\nArgument Regex Filters (.*=nofilter): " + "  ".join(rule[1]) + "\nRule: "\
+                   "\nArgument Regex Filters (.*=nofilter): " + "  ".join(rule[1]) + "\nRule: " \
                    + rule[2] + "\n"
         return ret
 
@@ -113,14 +113,14 @@ class RuleManager:
 
         if len(regexes) != len(args):
             self.error_msg("Conflicting argument numbers when running rule \"{}\": {} required, {} given."
-                  .format(rule, len(regexes), len(args)))
+                           .format(rule, len(regexes), len(args)))
             exit(1)
         if regex_check:
             for pattern, string in zip(regexes, args):
                 check = re.match(pattern, string)
                 if not check or check.end() != len(string):
                     self.error_msg("Rule \"{}\": Argument \"{}\" does not satisfy regex \"{}\""
-                          .format(rule, string, pattern))
+                                   .format(rule, string, pattern))
                     exit(1)
 
         # apply the rule
@@ -203,6 +203,3 @@ class RuleManager:
     @staticmethod
     def error_msg(msg):
         print(colored("RuleManager:", "red", attrs=['bold']), colored(msg, "white", attrs=['bold']))
-
-
-
