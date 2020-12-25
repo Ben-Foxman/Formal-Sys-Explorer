@@ -90,42 +90,49 @@ class FSys:
         return s, a, r
 
     def manage_interface(self):
+        count = 1
         while True:
-            cmd = input(colored("Enter a command. Type \"help\" for a list of commands.\n", attrs=['bold']))
-            if cmd == "help":
+            cmd = input(colored("({}) ".format(count), attrs=['bold'])).split()
+            if not cmd:
+                continue
+            if cmd[0] == "help":
                 with open("help.docs", "r") as file:
                     print("".join(file.readlines()))
-            elif cmd == "exit":
+            elif cmd[0] == "exit":
                 exit(0)
-            elif cmd == "print":
+            elif cmd[0] == "print":
                 print(self)
-            elif cmd[:9] == "maxdepth ":
-                if not re.match("\d+", cmd[9:]):
+            elif cmd[0] == "maxdepth":
+                if len(cmd) == 1:
+                    print("maxdepth={}".format(self.max_depth))
+                elif not re.match("\d+", cmd[1]):
                     self.error_msg("maxdepth: argument must be an integer.")
                 else:
-                    self.max_depth = min(int(cmd[9:]), (10 ** 3) - 1)
+                    self.max_depth = min(int(cmd[1]), (10 ** 3) - 1)
                     print("maxdepth updated: maxdepth={}".format(self.max_depth))
-            elif cmd[:7] == "maxlen ":
-                if not re.match("\d+", cmd[7:]):
+            elif cmd[0] == "maxlen":
+                if len(cmd) == 1:
+                    print("maxlen={}".format(self.max_len))
+                elif not re.match("\d+", cmd[1]):
                     self.error_msg("maxlen: argument must be an integer.")
                 else:
-                    self.max_len = min(int(cmd[7:]), (10 ** 4) - 1)
+                    self.max_len = min(int(cmd[1]), (10 ** 4) - 1)
                     print("maxlen updated: maxlen={}".format(self.max_len))
-            elif cmd[:6] == "target" or cmd[:7] == "exhaust":
-                args = cmd.split()
-                if len(args) >= 2 and args[1] == "-l":
-                    if cmd[:7] == "target ":
-                        self.search_strings(args[2:], longform=True)
+            elif cmd[0] == "target" or cmd[0] == "exhaust":
+                if len(cmd) >= 2 and cmd[1] == "-l":
+                    if cmd[0] == "target":
+                        self.search_strings(cmd[2:], longform=True)
                     else:
                         self.search_strings([], longform=True)
                 else:
-                    if cmd[:6] == "target":
-                        self.search_strings(args[1:], longform=False)
+                    if cmd[0] == "target":
+                        self.search_strings(cmd[1:], longform=False)
                     else:
                         self.search_strings([], longform=False)
-
             else:
-                self.error_msg("Invalid command: {}".format(cmd))
+                self.error_msg("Invalid command: {}".format("".join(cmd)))
+                count -= 1
+            count += 1
 
     # empty strings array -> exhaust requested
     def search_strings(self, strings, longform):
@@ -177,23 +184,5 @@ class FSys:
                     print(colored("depth={}: {}".format(t[1], t[0]), colors[t[1] % 3], attrs=['bold']))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 f = FSys()
-
-
-
-
-
 
