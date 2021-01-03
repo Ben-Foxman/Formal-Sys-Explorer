@@ -33,8 +33,6 @@ Replace by the substring from a(inclusive) to b(exclusive), using python substri
 3. (){a^b}
 Replace all occurrences of string a with string b. a,b must both have all chars be in the alphabet. Note: these
 strings are not expanded, so ${0} causes an error, since "$" is not allowed.
-TODO: {a<b} If capture group is identical to a, replace with b.
-TODO: {a>b}  If capture group is not identical to a, replace with b.
 
 ------Escapes------
 1. \

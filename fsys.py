@@ -44,38 +44,39 @@ class FSys:
         s, a, r = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRTSUVWXYZ0123456789-"), [], RuleManager()
         banned_chars = ":;$|<>()^$"
         count = 0
-        with open(sys.argv[1]) as file:
-            for arg in file:
-                arg = arg.strip()  # remove trailing newlines
-                count += 1
-                if len(arg) < 2 or arg[0] not in ['a', 'r', 's'] or arg[1] != '.' or \
-                        (arg[0] == 's' and count != 1):
-                    self.error_msg("Usage: [s.x][a.x | r.x]")
-                    exit(1)
+        if len(sys.argv) > 1:
+            with open(sys.argv[1]) as file:
+                for arg in file:
+                    arg = arg.strip()  # remove trailing newlines
+                    count += 1
+                    if len(arg) < 2 or arg[0] not in ['a', 'r', 's'] or arg[1] != '.' or \
+                            (arg[0] == 's' and count != 1):
+                        self.error_msg("Usage: [s.x][a.x | r.x]")
+                        exit(1)
 
-                info = arg[2:]
-                if arg[0] == 's':
-                    for char in info:
-                        if char in banned_chars:
-                            self.error_msg("{}: contains banned character {}. Stop.".format(info, char))
-                            exit(1)
-                    if len(info) == 0:
-                        self.error_msg("Alphabets must have at least one character.")
-                    s = sorted(list(set(info)))
-                    r.set_alphabet(s)
-                elif arg[0] == 'a':
-                    good = True
-                    for char in info:
-                        if char not in s:
-                            self.error_msg(
-                                "Axiom '{}' consists of characters not in alphabet. It will be discarded.".format(info))
-                            good = False
-                            break
-                    if good:
-                        a.append(info)
-                # adding a rule
-                else:
-                    r.add_rule(info)
+                    info = arg[2:]
+                    if arg[0] == 's':
+                        for char in info:
+                            if char in banned_chars:
+                                self.error_msg("{}: contains banned character {}. Stop.".format(info, char))
+                                exit(1)
+                        if len(info) == 0:
+                            self.error_msg("Alphabets must have at least one character.")
+                        s = sorted(list(set(info)))
+                        r.set_alphabet(s)
+                    elif arg[0] == 'a':
+                        good = True
+                        for char in info:
+                            if char not in s:
+                                self.error_msg(
+                                    "Axiom '{}' consists of characters not in alphabet. It will be discarded.".format(info))
+                                good = False
+                                break
+                        if good:
+                            a.append(info)
+                    # adding a rule
+                    else:
+                        r.add_rule(info)
 
         # default axiom is string of entire alphabet
         if len(a) == 0:
@@ -108,7 +109,7 @@ class FSys:
                 elif not re.match("\d+", cmd[1]):
                     self.error_msg("maxdepth: argument must be an integer.")
                 else:
-                    self.max_depth = min(int(cmd[1]), (10 ** 3) - 1)
+                    self.max_depth = min(int(cmd[1]), (10 ** 4) - 1)
                     print("maxdepth updated: maxdepth={}".format(self.max_depth))
             elif cmd[0] == "maxlen":
                 if len(cmd) == 1:
@@ -116,7 +117,7 @@ class FSys:
                 elif not re.match("\d+", cmd[1]):
                     self.error_msg("maxlen: argument must be an integer.")
                 else:
-                    self.max_len = min(int(cmd[1]), (10 ** 4) - 1)
+                    self.max_len = min(int(cmd[1]), (10 ** 6) - 1)
                     print("maxlen updated: maxlen={}".format(self.max_len))
             elif cmd[0] == "target" or cmd[0] == "exhaust":
                 if len(cmd) >= 2 and cmd[1] == "-l":

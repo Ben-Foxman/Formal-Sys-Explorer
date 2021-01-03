@@ -5,11 +5,11 @@ Print a summary of the formal system.
 
 --Analysis--
 maxlen n
-During analyses, maxlen specifies the maximum length of any string to find, where 0 <= n < 10000.Previous strings found
+During analyses, maxlen specifies the maximum length of any string to find, where 0 <= n <  10^6.Previous strings found
 with len >= maxlen will not be removed. Default: 100
 
 maxdepth n
-Set the maximum search depth during analyses to n, where 0 <= n < 1000. Previous strings found with depth
+Set the maximum search depth during analyses to n, where 0 <= n < 10^4. Previous strings found with depth
 >= maxdepth will not be removed. Default: 10
 
 target [-l] [strings]
